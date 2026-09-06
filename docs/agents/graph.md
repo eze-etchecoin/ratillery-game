@@ -32,8 +32,11 @@ opencode agents (`.opencode/agents/`) and skills (`.opencode/skills/`).
               └───────┬───────┘
           PASS ───┼───┴── FAIL -> developer (max 3 cycles)
                   ▼
-                DONE
-        (3 failed cycles -> ESCALATE_TO_HUMAN)
+             MERGE GATE (orchestrator)
+                  DEV_APPROVED + QA PASS + ANALYST_APPROVED
+                  ▼
+            merge --no-ff to main -> DONE (branch deleted)
+        (3 failed cycles or missing approval -> ESCALATE_TO_HUMAN)
 ```
 
 ## Components
@@ -51,6 +54,10 @@ opencode agents (`.opencode/agents/`) and skills (`.opencode/skills/`).
 ## Principles
 
 - Agents coordinate through artifacts (story files, ADRs), not chat.
+- `main` holds only validated work; the developer works on
+  `feat/<STORY-ID>-<slug>` branches and never merges them.
+- The orchestrator merges only after three approvals: DEV_APPROVED (dev),
+  PASS (qa), ANALYST_APPROVED (scope conformance).
 - QA never edits code; findings flow back through the orchestrator.
 - L3 product decisions always escalate to the human.
 - Deterministic edges (code-enforced graph) are a future evolution; this

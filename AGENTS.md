@@ -81,6 +81,15 @@ Status tracking:
   ADRs, product decisions, session log). Every artifact must be registered
   there; the orchestrator keeps it updated after each node transition.
 
+Branching:
+
+- `main` holds only finished, validated work; never commit features directly
+  to it.
+- The developer implements each story on `feat/<STORY-ID>-<slug>`.
+- The orchestrator merges into `main` only after three approvals:
+  `DEV_APPROVED` (developer), `PASS` (QA), `ANALYST_APPROVED` (scope
+  conformance). Merge with `--no-ff`, then mark the story `done`.
+
 ## Definition of Done
 
 A story is complete only when:

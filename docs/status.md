@@ -28,8 +28,10 @@ Progress: 0 / 8 slices
 | -- | ----- | ------ | -- | ---- |
 | — | — | — | — | — |
 
-Status: `draft` -> `ready` -> `in-progress` -> `done`. QA column records the
-last verdict and cycle count (e.g. `FAIL 2/3`, `PASS`).
+Status: `draft` -> `ready` -> `in-progress` (feature branch
+`feat/<ID>-<slug>`) -> `done` (merged to `main` after DEV_APPROVED + QA PASS +
+ANALYST_APPROVED). QA column records the last verdict and cycle count
+(e.g. `FAIL 2/3`, `PASS`).
 
 ## Bugs
 

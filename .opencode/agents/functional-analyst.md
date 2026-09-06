@@ -33,6 +33,12 @@ useful) and wait for the human.
 
 Use the `create-user-story` skill and store stories in `docs/stories/`.
 
+Scope conformance check: when the orchestrator requests it before a merge,
+review the diff of the feature branch against the story. Verify the
+implementation did not change requirements, invent gameplay rules, or expand
+scope. You do not judge code quality; you judge scope only. Finish with
+`ANALYST_APPROVED` or list the deviations.
+
 Your output must follow this schema:
 
 ```text

@@ -35,16 +35,40 @@ developer:
     otherwise      -> qa
 
 qa:
-    PASS           -> DONE (update story status to done)
+    PASS           -> merge gate
     FAIL           -> developer (pass the QA report verbatim)
     BLOCKED        -> HUMAN
 ```
+
+## Merge gate
+
+`main` holds only finished, validated work. Before merging a feature branch
+into `main`, collect all three approvals:
+
+```text
+1. DEV_APPROVED      developer   (implementation complete, build/tests green)
+2. PASS              qa          (acceptance criteria satisfied)
+3. ANALYST_APPROVED  functional-analyst (scope conformance: the diff matches
+                                        the story, no invented rules or scope)
+```
+
+Only then, and only if the human has not withheld approval:
+
+- merge with `git checkout main && git merge --no-ff feat/<branch> -m "merge: <STORY-ID> <title>"`;
+- update the story to `done` and refresh `docs/status.md`;
+- delete the feature branch.
+
+If any approval is missing or a FAIL verdict arrives, send the branch back to
+the developer. The iteration cap (3 cycles) still applies. Large or risky
+merges escalate to HUMAN before merging.
 
 Rules:
 
 - Never invent product decisions. Gameplay ambiguities always escalate to HUMAN.
 - Never implement features, write stories, or validate implementations yourself.
 - Never rewrite acceptance criteria after development begins.
+- Never merge into `main` without the three approvals (DEV_APPROVED, QA PASS,
+  ANALYST_APPROVED).
 - Maximum developer/qa iterations: 3. After 3 failed QA cycles, ESCALATE_TO_HUMAN.
 - Agents coordinate through artifacts (story files in `docs/stories/`), not
   ad-hoc chat. Pass the story ID and the QA report verbatim, not summaries you
