@@ -5,6 +5,7 @@
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Ratillery.Core.Tests/Ratillery.Core.Tests.csproj" />
+    <Project Path="tests/Ratillery.AssetProcessor.Tests/Ratillery.AssetProcessor.Tests.csproj" />
   </Folder>
   <Folder Name="/tools/">
     <Project Path="tools/Ratillery.AssetProcessor/Ratillery.AssetProcessor.csproj" />
