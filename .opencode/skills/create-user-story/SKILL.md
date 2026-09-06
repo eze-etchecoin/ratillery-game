@@ -10,7 +10,9 @@ description: Creates a structured Ratillery user story with acceptance criteria 
 2. List the existing stories in `docs/stories/` to pick the next sequential
    ID (`GAME-001`, `GAME-002`, ...).
 3. Write the story file as `docs/stories/<ID>.md` using the template below.
-4. Keep every requirement declarative and verifiable; no classes, patterns,
+4. Register the story in the Stories table of `docs/status.md` with
+   `status: draft` (or `ready`).
+5. Keep every requirement declarative and verifiable; no classes, patterns,
    or implementation hints.
 
 ## Template
@@ -54,3 +56,5 @@ so that ...
 - If a gameplay decision is ambiguous and materially affects the game, do not
   decide: leave it in Open Questions and report OPEN_QUESTIONS to the caller.
 - Set `status: ready` only when Open Questions is empty.
+- Keep `docs/status.md` in sync: story rows and, when a decision is resolved
+  by the human, add it to Product decisions (DEC-###).

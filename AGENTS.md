@@ -75,6 +75,12 @@ Rules:
 - Assets (sprites, audio) are provided by the human; use clearly-identified
   placeholders until then.
 
+Status tracking:
+
+- `docs/status.md` is the single index of agent artifacts (stories, bugs,
+  ADRs, product decisions, session log). Every artifact must be registered
+  there; the orchestrator keeps it updated after each node transition.
+
 ## Definition of Done
 
 A story is complete only when:

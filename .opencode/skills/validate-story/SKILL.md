@@ -41,3 +41,6 @@ not blockers by themselves).
 
 Use BLOCKED only when validation is impossible (ambiguous criteria, build
 broken by unrelated causes, missing story).
+
+Note: you cannot edit files. Report results only; the orchestrator records
+them in `docs/status.md` and the story's QA History.

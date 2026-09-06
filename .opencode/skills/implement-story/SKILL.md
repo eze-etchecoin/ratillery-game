@@ -21,9 +21,13 @@ dotnet test
 ```
 
 6. If a QA report was provided, address each FAIL item exactly as reported.
-7. Update the story `status:` only as instructed by the orchestrator.
+7. Update the story file and the Stories table in `docs/status.md`
+   (`in-progress` while working, `done` only after QA PASS per the
+   orchestrator's instruction).
 8. If an L2 architecture decision was made, record an ADR in
-   `docs/architecture/decisions/`.
+   `docs/architecture/decisions/` and register it in `docs/status.md`.
+9. Bugs discovered along the way become `BUG-###` files in `docs/bugs/`
+   (registered in the Bugs table), never silent fixes.
 
 ## Stop conditions
 
