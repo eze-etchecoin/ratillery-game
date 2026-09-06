@@ -3,7 +3,7 @@
 Single source of truth for development status. Maintained by the
 orchestrator; every agent artifact must be registered here.
 
-Last updated: 2026-09-06 (RAT-002 merged to main, slice 2 done)
+Last updated: 2026-09-06 (TOOL-001 merged to main; terrain art delivery pending processing)
 
 ## Milestone
 
@@ -28,7 +28,7 @@ Progress: 2 / 8 slices
 | -- | ----- | ------ | -- | ---- |
 | RAT-001 | Animated rat (Idle) | done | PASS | `docs/stories/RAT-001-animated-rat-idle.md` |
 | RAT-002 | 2D terrain + collision mask | done | PASS | `docs/stories/RAT-002-2d-terrain-collision-mask.md` |
-| TOOL-001 | Asset-processor tile mode (terrain layer validation + mirror) | in-progress | PASS | `docs/stories/TOOL-001-asset-processor-tile-mode.md` |
+| TOOL-001 | Asset-processor tile mode (terrain layer validation + mirror) | done | PASS | `docs/stories/TOOL-001-asset-processor-tile-mode.md` |
 
 Status: `draft` -> `ready` -> `in-progress` (feature branch
 `feat/<ID>-<slug>`) -> `done` (merged to `main` after DEV_APPROVED + QA PASS +
@@ -70,7 +70,7 @@ Handoff notes for the next working session.
 
 | Item | Origin | Action needed | Reference |
 | ---- | ------ | ------------- | --------- |
-| Terrain real art (3 zones, DEC-007) | RAT-002, R-2(d) — delayed by design | Human generates 3 RGBA PNGs per DEC-007 and drops them at `assets-source/terrain/layers/surface-cap.png`, `rock.png`, `interior.png`. Then asset-processor validates/processes (may need new L2 tile mode) and a dev story swaps the placeholder fill to real art; human visual sign-off (DEC-006). | DEC-007 below |
+| Terrain real art (3 zones, DEC-007) | RAT-002, R-2(d) — art DELIVERED, pending processing | Human delivered 3 RGBA PNGs at `assets-source/terrain/layers/` (`surface-cap.png`, `rock.png`, `interior.png`; committed on main). Next: asset-processor validates/processes them with the new `tile` command (TOOL-001); then a dev story swaps the placeholder fill to real art; human visual sign-off (DEC-006). | DEC-007 below / TOOL-001 |
 | Terrain feel tune (optional) | RAT-002 shipped default (seed 20260906) | If the human wants more/less relief, adjust `TerrainConfig` defaults (L1). | `src/Ratillery.Core/Terrain/TerrainConfig.cs` |
 | Slice 3: Aiming | Milestone backlog | Needs a PRODUCT_REQUEST + product decisions from the human (input scheme, reticle/aim UI, angle/power UX) before the functional-analyst drafts the story. | `docs/status.md` milestone table |
 
@@ -101,3 +101,4 @@ Chronological summary per dev cycle. One line per story/bug resolution.
 | 2026-09-06 | TOOL-001 | Two developer runs returned empty (suspected model issue); human switched the default model and the retry succeeded. Developer implemented on `feat/TOOL-001-asset-processor-tile-mode` (uncommitted working tree): `tile` command with per-kind validation (opacity policy, earth-top rule, threshold-based seam metric edge<=max(6,3*interior) over cap body rows), byte-copy mirror + sidecar, new `tests/Ratillery.AssetProcessor.Tests` (34 tests), docs (README terrain section, process-asset skill, ADR-002 amendment, help text). `dotnet build` 0w/0e; `dotnet test` 61/61 green (27 Core + 34 tool). Real art untouched. DEV_APPROVED; awaiting QA. |
 | 2026-09-06 | TOOL-001 | QA PASS (cycle 1/3): all AC-1..AC-12 hold; build 0w/0e, tests 61/61; independent CLI verification with own synthetic fixtures in a temp sandbox (happy paths, all failure modes, stem/mirror/usage errors, determinism, byte-copy hash check, sidecar shape, regression on `validate` + no sprite assets regenerated); no scope creep (`src/` untouched, `assets/` untouched, raw art never processed). Non-blocking notes: shared `ReadPngHeader` naming, culture-dependent console summary, ratio null on floor-only case, repo-root cwd assumption for default mirror. Awaiting ANALYST_APPROVED (scope conformance) + human merge consent. |
 | 2026-09-06 | TOOL-001 | ANALYST_APPROVED (scope conformance): every changed file maps to a story item; ACs match the drafted AC-1..AC-12 verbatim; rules in `TileProcessing` match story + DEC-007 (kinds, earth-top + headroom, opacity, seam axes, byte-copy, no pixel transforms); out of scope respected (no `src/`, no `assets/`, RAT stories untouched). Non-blocking: `ReadPngHeader` error-message wording reads oddly on the `validate` path (later cleanup). Merge gate 3/3 (DEV_APPROVED + QA PASS + ANALYST_APPROVED); pending human merge consent. |
+| 2026-09-06 | TOOL-001 | Human granted merge consent + push. Merged to main (--no-ff, `aea3d79`), story `done`, feature branch deleted. Raw terrain art (3 files per DEC-007) committed separately on main per human request. Next: asset-processor validates the delivery via the new `tile` command (human said "lo probaremos con los assets"). |

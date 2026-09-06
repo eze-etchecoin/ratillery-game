@@ -1,6 +1,6 @@
 # TOOL-001: Asset-processor tile mode — validation and mirrored delivery of terrain layer textures
 
-status: in-progress
+status: done
 
 ## Story
 
