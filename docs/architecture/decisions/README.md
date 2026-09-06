@@ -29,3 +29,5 @@ Status: accepted | superseded by ADR-###
 - ADR-001: .NET 10, MonoGame DesktopGL, net10.0 uniform, content pipeline
   with `FontDescriptionProcessor` (see git history of the initialization
   commit for details).
+- ADR-002: asset pipeline — `assets-source/` raw vs `assets/` processed,
+  lowercase layout, `tools/Ratillery.AssetProcessor` preprocessing tool.

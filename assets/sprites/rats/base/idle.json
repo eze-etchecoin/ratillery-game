@@ -1,0 +1,12 @@
+{
+  "name": "rat-idle",
+  "frameCount": 8,
+  "frameWidth": 273,
+  "frameHeight": 265,
+  "fps": 8,
+  "loop": true,
+  "pivot": {
+    "x": 0.5,
+    "y": 1
+  }
+}
