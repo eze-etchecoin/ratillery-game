@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Ratillery.Core/Ratillery.Core.csproj" />
+    <Project Path="src/Ratillery.Game/Ratillery.Game.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Ratillery.Core.Tests/Ratillery.Core.Tests.csproj" />
+  </Folder>
+</Solution>
