@@ -3,7 +3,7 @@
 Single source of truth for development status. Maintained by the
 orchestrator; every agent artifact must be registered here.
 
-Last updated: 2026-09-06 (initialization complete, no stories yet)
+Last updated: 2026-09-06 (RAT-001 implemented on `feat/RAT-001-animated-rat-idle`, pending QA)
 
 ## Milestone
 
@@ -13,7 +13,7 @@ Progress: 0 / 8 slices
 
 | # | Slice | Story | Status |
 | - | ----- | ----- | ------ |
-| 1 | Animated rat (Idle) | RAT-001 | draft |
+| 1 | Animated rat (Idle) | RAT-001 | ready |
 | 2 | 2D terrain + collision mask | — | pending |
 | 3 | Aiming | — | pending |
 | 4 | Firing + projectile | — | pending |
@@ -26,7 +26,7 @@ Progress: 0 / 8 slices
 
 | ID | Title | Status | QA | File |
 | -- | ----- | ------ | -- | ---- |
-| RAT-001 | Animated rat (Idle) | draft | — | `docs/stories/RAT-001-animated-rat-idle.md` |
+| RAT-001 | Animated rat (Idle) | in-progress | — | `docs/stories/RAT-001-animated-rat-idle.md` |
 
 Status: `draft` -> `ready` -> `in-progress` (feature branch
 `feat/<ID>-<slug>`) -> `done` (merged to `main` after DEV_APPROVED + QA PASS +
@@ -48,6 +48,7 @@ reproduction steps). Status: `open` -> `in-progress` -> `fixed` -> `verified`.
 | -- | ----- | ---- |
 | ADR-001 | Initialization decisions (net10.0, DesktopGL, content pipeline) | `docs/architecture/decisions/` |
 | ADR-002 | Asset pipeline: `assets-source/` raw vs `assets/` processed + `tools/Ratillery.AssetProcessor` | `docs/architecture/decisions/ADR-002-asset-pipeline.md` |
+| ADR-003 | Runtime sprite content delivery: `assets/` mirrored into output `Content/`, raw texture load (no XNB for sprites) | `docs/architecture/decisions/ADR-003-runtime-sprite-content.md` |
 
 ## Product decisions
 
@@ -71,3 +72,5 @@ Chronological summary per dev cycle. One line per story/bug resolution.
 | 2026-09-06 | ADR-002 / DEC-005 | Asset pipeline built; rat idle processed to `assets/sprites/rats/base/idle.png` (8 frames, 273x265) + `idle.json` + `frames/` |
 | 2026-09-06 | RAT-001 asset | QA found gutter-less source: tails crossed frame boundaries (frame 0 showed neighbor's tail tip; frames 1-7 had sectioned tails). Human re-sourced a clean sheet (2680x682, 8x335 cells with gutters) and it reprocessed correctly; generic delivery spec added at `assets-source/README.md`. |
 | 2026-09-06 | DEC-006 / asset-processor | Added `validate` subcommand (deterministic JSON verdict) + `asset-processor` agent & `process-asset` skill; assets-source mirrors assets 1:1; docs updated (AGENTS, ADR-002, graph.md). |
+| 2026-09-06 | RAT-001 | Story finalized `draft` → `ready`. Human resolved OQ-1 (idle asset PROCESSED: 8 frames 273x265 @ 8 fps, loop, pivot bottom-center 0.5/1.0), OQ-2 (placeholder = frame 0, fallback only), scope Option B (full 8-frame looping idle animation in scope), and stage decision (flat non-destructible floor reference; destructible terrain stays slice 2). |
+| 2026-09-06 | RAT-001 | Developer implemented on `feat/RAT-001-animated-rat-idle`: data-driven looping idle animation (all params from `idle.json`), flat floor staging, frame-0 fallback, time-based playback; ADR-003 records the sprite content delivery decision. `dotnet build` + `dotnet test` green; awaiting QA. |
