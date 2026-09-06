@@ -1,6 +1,6 @@
 # RAT-001: Animated rat (Idle)
 
-status: in-progress
+status: done
 
 ## Story
 
