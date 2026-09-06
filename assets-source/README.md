@@ -3,17 +3,31 @@
 This folder holds raw, human/generated originals (sprites, animations,
 props, icons, terrain, UI art). Per ADR-002:
 
-- Drop new raw files here, then process them into `assets/` with
-  `tools/Ratillery.AssetProcessor`. Never hand-edit or commit processed
-  results under this folder; reprocess instead.
+- **Layout rule:** `assets-source/` mirrors `assets/` one-to-one. Drop a raw at
+  `assets-source/<relative-path>` and the processed output goes to
+  `assets/<relative-path>`. Example: `assets-source/sprites/rats/base/idle.png`
+  -> `assets/sprites/rats/base/idle.png`.
 - Raw files are never modified after delivery. Re-run the pipeline if the
   output needs to change.
+- Never hand-edit or commit processed results under this folder; reprocess
+  instead.
 
-## Processing
+## Hand-off
+
+You only generate and drop sources; you do not run the pipeline yourself.
+
+1. Save the raw PNG(s) under `assets-source/` at the mirrored path of where
+   they belong in `assets/`.
+2. Ask the **asset-processor** agent to validate and process them (e.g.
+   "process assets-source/sprites/rats/base/idle.png, 8 frames"). It checks
+   the source against the spec below, reports anything that needs a new
+   source, and runs the pipeline for everything that is clean.
+
+Manual processing (also what the agent runs):
 
 ```bash
-# Inspect a file first: reports content bounds and frame candidates.
-dotnet run --project tools/Ratillery.AssetProcessor -- inspect <input> [--frames N]
+# Deterministic processability verdict (RGBA, single vs strip, gutters...).
+dotnet run --project tools/Ratillery.AssetProcessor -- validate <input> [--frames N] [--json]
 
 # Normalize an ANIMATED strip of N frames.
 dotnet run --project tools/Ratillery.AssetProcessor -- sheet <input> --frames N --output <dest>.png --frames-dir <dest-dir> --name <name>
@@ -71,5 +85,5 @@ object, icon, prop — so it survives the pipeline without manual fixes.
 - Background painted instead of alpha; green-screen output; edge halos.
 - Tails/limbs/shadow that extend past a subject's own cell into the next.
 
-When a delivery looks risky, run `inspect` before processing to confirm the
+When a delivery looks risky, run `validate` before processing to confirm the
 splits land in empty gutter; adjust the source, not the output.

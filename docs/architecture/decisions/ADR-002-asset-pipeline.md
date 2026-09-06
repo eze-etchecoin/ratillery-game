@@ -28,8 +28,10 @@ final sheet must be deterministic and re-runnable.
 Two-tier asset layout plus a preprocessing tool kept in the repository.
 
 - `assets-source/` holds human/generated deliverables only, never edited by
-  agents. Naming is lowercase, mirrors `assets/` categories (e.g.
-  `assets-source/rats/base/idle.png`).
+  agents. It mirrors `assets/` one-to-one: a raw at
+  `assets-source/<relative-path>` produces output at `assets/<relative-path>`
+  (e.g. `assets-source/sprites/rats/base/idle.png` ->
+  `assets/sprites/rats/base/idle.png`). Naming is lowercase.
 - `assets/` holds only final, game-ready material produced by the pipeline.
   Directory names are lowercase (`assets/sprites/rats/base/`). A final sheet
   ships with a sidecar JSON metadata file of the same stem
@@ -38,6 +40,9 @@ Two-tier asset layout plus a preprocessing tool kept in the repository.
   pipeline. Commands:
   - `inspect` reports content bounds and the alpha-silhouette frame split for
     a raw strip.
+  - `validate` emits a deterministic processability verdict (RGBA/alpha,
+    single vs strip, frame isolation, gutters, margins, baseline drift) as a
+    JSON report.
   - `sheet` splits a horizontal strip into N frames, detects each frame's
     visible content via the alpha channel (ignoring pixels with alpha below a
     threshold), crops to a common cell size, centers horizontally, aligns all
@@ -46,6 +51,10 @@ Two-tier asset layout plus a preprocessing tool kept in the repository.
     JSON (name, frameCount, frameWidth, frameHeight, fps, loop, pivot) and,
     optionally, the individual frames.
   - No scaling or deformation is ever applied.
+- The **asset-processor** agent (DEC-006) validates each delivery with
+  `validate` and, when clean, normalizes it with `sheet`; it never generates
+  or hand-edits art. The human supplies sources and gives the final visual
+  sign-off.
 
 Metadata is machine-consumable so the future image-generation engine can
 write to `assets-source/` and the same pipeline converts it.
@@ -57,11 +66,11 @@ write to `assets-source/` and the same pipeline converts it.
 - The game consumes only normalized sheets + metadata, so swapping assets is
   config/data-only (RAT-001 AC-4/AC-6).
 - The first processed asset is `assets/sprites/rats/base/idle.png` (8 frames,
-  273x265 cells, sheet 2184x265) from `assets-source/rats/base/idle.png`
-  (2680x682 RGBA). A first AI sheet with touching/overlapping frames (no
-  transparent gutters) could not be cropped cleanly — neighbor tails crossed
-  the frame boundaries — so the human re-sourced it; delivery rules are in
-  `assets-source/README.md`.
+  273x265 cells, sheet 2184x265) from
+  `assets-source/sprites/rats/base/idle.png` (2680x682 RGBA). A first AI sheet
+  with touching/overlapping frames (no transparent gutters) could not be
+  cropped cleanly — neighbor tails crossed the frame boundaries — so the
+  human re-sourced it; delivery rules are in `assets-source/README.md`.
 - Existing `assets/` placeholders created at initialization with PascalCase
   names were renamed to lowercase; no code referenced the old paths.
 - Processed output is deterministic but not artistic QA: the human still

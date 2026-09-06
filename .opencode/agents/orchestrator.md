@@ -13,6 +13,7 @@ Available agents:
 - functional-analyst
 - developer
 - qa
+- asset-processor (on asset deliveries only; outside the dev-story graph)
 
 The standard workflow is:
 

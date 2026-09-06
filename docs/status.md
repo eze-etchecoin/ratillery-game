@@ -58,6 +58,7 @@ reproduction steps). Status: `open` -> `in-progress` -> `fixed` -> `verified`.
 | DEC-003 | Visual direction: 2D side-view stylized cartoon; small big-headed rats; oversized weapons; visible terrain destruction; illustrated raster sprites (not pixel art); modular sprite sheet (idle/walk/aim/fire/hit/airborne/land/death); teams differentiated by accessories + secondary color. Human acts as graphic designer, provides assets on demand. | human | `temp/02-conversacion-chatgpt-idea-inicial.md` |
 | DEC-004 | Human roles: product owner + graphic designer/asset provider. Temporary: to be replaced by an image-generation engine via MCP; asset specs stay machine-consumable. | human | `AGENTS.md` (Human Roles) |
 | DEC-005 | Lowercase asset layout: raw files under `assets-source/`, game-ready files under `assets/`; preprocessing pipeline lives in-repo as `tools/Ratillery.AssetProcessor`. | human | ADR-002 |
+| DEC-006 | The human stays apart from the asset pipeline: sources are dropped into `assets-source/` (mirrors `assets/` 1:1) and the `asset-processor` agent validates (deterministic verdict) + normalizes them; agents never generate or edit art. | human | AGENTS.md / ADR-002 |
 
 ## Session log
 
@@ -69,3 +70,4 @@ Chronological summary per dev cycle. One line per story/bug resolution.
 | 2026-09-06 | DEC-003 | Visual direction approved by human; slice 1 story requested |
 | 2026-09-06 | ADR-002 / DEC-005 | Asset pipeline built; rat idle processed to `assets/sprites/rats/base/idle.png` (8 frames, 273x265) + `idle.json` + `frames/` |
 | 2026-09-06 | RAT-001 asset | QA found gutter-less source: tails crossed frame boundaries (frame 0 showed neighbor's tail tip; frames 1-7 had sectioned tails). Human re-sourced a clean sheet (2680x682, 8x335 cells with gutters) and it reprocessed correctly; generic delivery spec added at `assets-source/README.md`. |
+| 2026-09-06 | DEC-006 / asset-processor | Added `validate` subcommand (deterministic JSON verdict) + `asset-processor` agent & `process-asset` skill; assets-source mirrors assets 1:1; docs updated (AGENTS, ADR-002, graph.md). |

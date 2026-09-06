@@ -25,13 +25,16 @@ dotnet restore
 dotnet build
 dotnet test
 dotnet run --project src/Ratillery.Game
+dotnet run --project tools/Ratillery.AssetProcessor -- validate <raw> [--frames N]
 dotnet run --project tools/Ratillery.AssetProcessor -- sheet <raw> --frames N --output <sheet>
 ```
 
-Asset pipeline (ADR-002): raw human/generated assets go under
-`assets-source/` and are normalized by `tools/Ratillery.AssetProcessor`
-(`inspect`/`sheet`) into game-ready files under `assets/`. Never hand-edit or
-commit to `assets-source/`; reprocess instead.
+Asset pipeline (ADR-002): `assets-source/` mirrors `assets/` one-to-one. Raw
+human/generated assets go under `assets-source/<relative-path>` and are
+validated + normalized by the **asset-processor** agent via
+`tools/Ratillery.AssetProcessor` (`validate`/`sheet`) into game-ready files
+under `assets/<relative-path>`. Never hand-edit or commit to `assets-source/`;
+reprocess instead.
 
 ## Architecture
 
@@ -45,9 +48,11 @@ Strict separation between domain logic and MonoGame integration:
 - `tests/Ratillery.Core.Tests/` — xUnit tests for Core only. Never test rendering.
 - `assets-source/` — raw human/generated assets (sprites, audio). Never
   modified by agents; game-ready copies are produced from here (ADR-002).
+  Mirrors `assets/` one-to-one.
 - `assets/` — processed, game-ready material (lowercase layout) plus sidecar
   `.json` metadata next to each sprite sheet.
-- `tools/Ratillery.AssetProcessor/` — asset preprocessing pipeline (ADR-002).
+- `tools/Ratillery.AssetProcessor/` — asset preprocessing pipeline:
+  `validate` (processability verdict) and `sheet` (normalized output).
 - `docs/` — product vision, game rules, user stories, architecture decisions.
 
 Conventions:
@@ -83,9 +88,23 @@ Rules:
   (developer decides + ADR in `docs/architecture/decisions/`), L3 product
   (human decides).
 - Assets (sprites, audio) are provided by the human as raw files under
-  `assets-source/`; agents never modify originals and produce game-ready
-  copies through the pipeline into `assets/` (ADR-002). Until delivered, use
-  clearly-identified placeholders.
+  `assets-source/`. The **asset-processor** agent validates each delivery
+  against the source spec and produces game-ready copies through the pipeline
+  into `assets/` (ADR-002); it never generates or edits art. Until delivered,
+  use clearly-identified placeholders.
+
+## Asset delivery flow
+
+```text
+HUMAN (generated source PNG)
+    -> assets-source/<mirrored path>
+    -> asset-processor  (validate + sheet -> assets/<mirrored path>)
+
+verdicts:
+    PROCESSED       -> human visual QA (final sign-off)
+    NEEDS_SOURCE_FIX-> human re-delivers (per assets-source/README.md)
+    BLOCKED         -> HUMAN (ambiguity: frame count, target path, kind)
+```
 
 ## Human Roles
 
@@ -99,6 +118,10 @@ The human fills these roles (DEC-004):
   orientation, style reference) and the human delivers it as a raw file into
   `assets-source/` per ADR-002.
   Until delivered, agents use clearly-identified placeholders (DEC-002).
+- Per DEC-006, the human stays apart from the pipeline: the **asset-processor**
+  agent validates that delivered sources are processable/usable and runs the
+  normalization. The human only generates/drops sources and gives final visual
+  sign-off; agents never create or edit art.
 - This arrangement is **temporary**: the plan is to replace the human asset
   provider with an image-generation engine connected via MCP. Agents should
   keep asset specs machine-consumable (structured, in the story file) to
