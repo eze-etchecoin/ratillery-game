@@ -3,7 +3,7 @@
 Single source of truth for development status. Maintained by the
 orchestrator; every agent artifact must be registered here.
 
-Last updated: 2026-09-06 (RAT-001 implemented on `feat/RAT-001-animated-rat-idle`, pending QA)
+Last updated: 2026-09-06 (RAT-001 QA PASS + ANALYST_APPROVED, awaiting human visual sign-off and merge)
 
 ## Milestone
 
@@ -26,7 +26,7 @@ Progress: 0 / 8 slices
 
 | ID | Title | Status | QA | File |
 | -- | ----- | ------ | -- | ---- |
-| RAT-001 | Animated rat (Idle) | in-progress | — | `docs/stories/RAT-001-animated-rat-idle.md` |
+| RAT-001 | Animated rat (Idle) | in-progress | PASS | `docs/stories/RAT-001-animated-rat-idle.md` |
 
 Status: `draft` -> `ready` -> `in-progress` (feature branch
 `feat/<ID>-<slug>`) -> `done` (merged to `main` after DEV_APPROVED + QA PASS +
@@ -74,3 +74,4 @@ Chronological summary per dev cycle. One line per story/bug resolution.
 | 2026-09-06 | DEC-006 / asset-processor | Added `validate` subcommand (deterministic JSON verdict) + `asset-processor` agent & `process-asset` skill; assets-source mirrors assets 1:1; docs updated (AGENTS, ADR-002, graph.md). |
 | 2026-09-06 | RAT-001 | Story finalized `draft` → `ready`. Human resolved OQ-1 (idle asset PROCESSED: 8 frames 273x265 @ 8 fps, loop, pivot bottom-center 0.5/1.0), OQ-2 (placeholder = frame 0, fallback only), scope Option B (full 8-frame looping idle animation in scope), and stage decision (flat non-destructible floor reference; destructible terrain stays slice 2). |
 | 2026-09-06 | RAT-001 | Developer implemented on `feat/RAT-001-animated-rat-idle`: data-driven looping idle animation (all params from `idle.json`), flat floor staging, frame-0 fallback, time-based playback; ADR-003 records the sprite content delivery decision. `dotnet build` + `dotnet test` green; awaiting QA. |
+| 2026-09-06 | RAT-001 | QA PASS (10/10 AC, build/test green, runtime smoke ok, no scope creep). ANALYST_APPROVED (scope conformance ok). Merge gate 3/3 complete; pending human visual sign-off per AC-1/DEC-006 before merge to main. |
