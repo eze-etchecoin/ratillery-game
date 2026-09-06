@@ -75,6 +75,22 @@ Rules:
 - Assets (sprites, audio) are provided by the human; use clearly-identified
   placeholders until then.
 
+## Human Roles
+
+The human fills these roles (DEC-004):
+
+- **Product owner** — decides on gameplay, scope, and anything tagged L3.
+- **Graphic designer / asset provider** — supplies all visual assets
+  (sprites, concept art, UI art, terrain art) for the game. Agents never
+  generate final art; when a story needs an asset, the story file must
+  include an explicit asset spec (format, frame count, frame size,
+  orientation, style reference) and the human delivers it into `assets/`.
+  Until delivered, agents use clearly-identified placeholders (DEC-002).
+- This arrangement is **temporary**: the plan is to replace the human asset
+  provider with an image-generation engine connected via MCP. Agents should
+  keep asset specs machine-consumable (structured, in the story file) to
+  make that swap easy. No other workflow changes are required for it.
+
 Status tracking:
 
 - `docs/status.md` is the single index of agent artifacts (stories, bugs,
