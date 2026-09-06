@@ -62,6 +62,16 @@ reproduction steps). Status: `open` -> `in-progress` -> `fixed` -> `verified`.
 | DEC-005 | Lowercase asset layout: raw files under `assets-source/`, game-ready files under `assets/`; preprocessing pipeline lives in-repo as `tools/Ratillery.AssetProcessor`. | human | ADR-002 |
 | DEC-006 | The human stays apart from the asset pipeline: sources are dropped into `assets-source/` (mirrors `assets/` 1:1) and the `asset-processor` agent validates (deterministic verdict) + normalizes them; agents never generate or edit art. | human | AGENTS.md / ADR-002 |
 
+## Open follow-ups
+
+Handoff notes for the next working session.
+
+| Item | Origin | Action needed | Reference |
+| ---- | ------ | ------------- | --------- |
+| Terrain real art (3 band textures) | RAT-002, R-2(d) — delayed by design | Human generates 3 horizontally tileable RGBA PNGs and drops them at `assets-source/terrain/layers/surface.png`, `rock.png`, `interior.png` (proposed ~512x64 each; spec + proposed values in story). Then asset-processor validates/processes (may need new L2 tile mode) and the placeholder fill swaps to real art; human visual sign-off (DEC-006). | `docs/stories/RAT-002-2d-terrain-collision-mask.md` (Asset Spec) |
+| Terrain feel tune (optional) | RAT-002 shipped default (seed 20260906) | If the human wants more/less relief, adjust `TerrainConfig` defaults (L1). | `src/Ratillery.Core/Terrain/TerrainConfig.cs` |
+| Slice 3: Aiming | Milestone backlog | Needs a PRODUCT_REQUEST + product decisions from the human (input scheme, reticle/aim UI, angle/power UX) before the functional-analyst drafts the story. | `docs/status.md` milestone table |
+
 ## Session log
 
 Chronological summary per dev cycle. One line per story/bug resolution.
@@ -82,3 +92,4 @@ Chronological summary per dev cycle. One line per story/bug resolution.
 | 2026-09-06 | RAT-002 | Developer implemented on `feat/RAT-002-2d-terrain-collision-mask` (commit 7218bd8): `TerrainConfig` + `TerrainMask` in Core (deterministic procedural profile, solid/empty + per-column surface height, config validation), `PlaceholderTerrain` + MainScene rework in Game (fixed 1280x720 playfield letterboxed, flat floor removed, rat pivot on mask surface at center column, placeholder marker). `dotnet build` 0 warnings/errors, `dotnet test` 27/27 green (19 new terrain-mask tests). DEV_APPROVED; story in-progress awaiting QA. |
 | 2026-09-06 | RAT-002 | QA PASS (1/1): all 10 ACs hold; build/test green; runtime pixel-probe evidence (terrain to bottom, 3 ordered bands darker with depth over hills/dips, non-flat continuous profile anchored at 78% row 562, cross-launch determinism, rat feet on surface no gap/sink, letterboxed resize OK, placeholder marker). No scope creep. Non-blocking notes recorded for later slices. Awaiting ANALYST_APPROVED + human merge consent. |
 | 2026-09-06 | RAT-002 | ANALYST_APPROVED (scope conformance): diff implements exactly AC-1..AC-10 + R-1..R-5, no invented rules/scope, no AC rewritten. Merge gate 3/3 (DEV_APPROVED + QA PASS + ANALYST_APPROVED). Human granted merge consent + push. Merged to main (--no-ff), story `done`, slice 2/8 complete, feature branch deleted, pushed to origin. |
+| 2026-09-06 | — | Human closed the working day after RAT-002. "Open follow-ups" section added to this file: terrain art delivery pending (R-2(d)), optional TerrainConfig feel tune, and Slice 3 (Aiming) as next backlog item. Status docs change left uncommitted on main (orchestrator commits only on explicit request). |
