@@ -6,6 +6,12 @@ Ratillery is a 2D turn-based tactical strategy game starring military rats,
 conceptually inspired by games like Worms but with its own identity:
 artillery, ballistic physics, destructible terrain, and cartoon visual humor.
 
+## Concept art
+
+Early/conceptual illustrations of characters, weapons, terrain, and gameplay:
+
+![Ratillery concept sheet](concept-sheet.png)
+
 ## Stack
 
 - C# / .NET 10
