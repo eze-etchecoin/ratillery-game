@@ -46,20 +46,5 @@ Ratillery/
 - **Ratillery.Game**: integración con MonoGame (game loop, rendering, input,
   carga de assets, animaciones, escenas).
 
-## Estado actual
-
-Prueba de concepto inicial: escena mínima con una rata placeholder
-(dibujada proceduralmente hasta tener los sprite sheets), suelo simple y
-overlay de debug con FPS.
-
-## First playable milestone
-
-> A rat can destroy the world.
-
-La milestone tendrá:
-
-- Rata animada (sprite sheet, empezando por `Idle`).
-- Terreno destructible (textura + collision mask).
-- Apuntado y disparo.
-- Balística con gravedad y viento.
-- Explosiones que generan cráteres en el terreno.
+Estado del desarrollo y roadmap: [`docs/status.md`](docs/status.md) ·
+Visión del producto: [`docs/product/vision.md`](docs/product/vision.md)
