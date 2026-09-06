@@ -33,4 +33,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Ratillery.Core\Ratillery.Core.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\assets\**\*" Link="Content\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
 </Project>

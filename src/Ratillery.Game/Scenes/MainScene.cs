@@ -2,26 +2,30 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Ratillery.Core.Entities;
+using Ratillery.Game.Animation;
 using Ratillery.Game.Rendering;
 
 namespace Ratillery.Game.Scenes;
 
 /// <summary>
-/// Minimal playable scene: background, a placeholder rat on simple ground
-/// and a debug overlay with FPS.
+/// Playable-canvas scene: simple background, a flat non-interactive floor
+/// band and a single animated rat standing on it. Layout follows the current
+/// viewport so the rat stays on screen when the window is resized.
 /// </summary>
 public sealed class MainScene
 {
-    private readonly SpriteBatch _spriteBatch;
-    private readonly PlaceholderRat _rat;
-    private readonly SpriteFont _debugFont;
+    private const string IdleSpriteDir = "sprites/rats/base";
+    private const string IdleSpriteStem = "idle";
+
     private readonly GraphicsDevice _graphicsDevice;
+    private readonly SpriteBatch _spriteBatch;
+    private readonly SpriteFont _debugFont;
+    private readonly Texture2D _pixel;
+    private readonly PlaceholderRat _placeholder;
+    private readonly Rat _rat = new() { State = RatState.Idle };
 
-    private readonly Rat _ratEntity = new()
-    {
-        Position = new System.Numerics.Vector2(160, 400),
-    };
-
+    private SpriteAnimation? _idle;
+    private string? _assetError;
     private int _frameCount;
     private float _fpsTimer;
     private int _fps;
@@ -30,14 +34,32 @@ public sealed class MainScene
     {
         _graphicsDevice = graphicsDevice;
         _spriteBatch = new SpriteBatch(graphicsDevice);
-        _rat = new PlaceholderRat(graphicsDevice);
         _debugFont = content.Load<SpriteFont>("Debug");
+        _pixel = new Texture2D(graphicsDevice, 1, 1);
+        _pixel.SetData(new[] { Color.White });
+        _placeholder = new PlaceholderRat(graphicsDevice);
+
+        try
+        {
+            var contentRoot = Path.Combine(AppContext.BaseDirectory, content.RootDirectory);
+            _idle = SpriteAnimation.Load(graphicsDevice, contentRoot, IdleSpriteDir, IdleSpriteStem);
+            if (!_idle.HasContent)
+                _assetError = "Idle sprite unavailable (frame 0 failed to load)";
+        }
+        catch (Exception ex)
+        {
+            _assetError = $"Idle sprite failed to load: {ex.Message}";
+            _idle = null;
+        }
     }
 
     public void Update(GameTime gameTime)
     {
+        var deltaSeconds = (float)gameTime.ElapsedGameTime.TotalSeconds;
+        _idle?.Update(deltaSeconds);
+
         _frameCount++;
-        _fpsTimer += (float)gameTime.ElapsedGameTime.TotalSeconds;
+        _fpsTimer += deltaSeconds;
         if (_fpsTimer >= 1f)
         {
             _fps = _frameCount;
@@ -48,22 +70,42 @@ public sealed class MainScene
 
     public void Draw(GameTime gameTime)
     {
-        _graphicsDevice.Clear(new Color(106, 150, 190));
+        var viewport = _graphicsDevice.Viewport;
+        float groundTop = viewport.Height * 0.78f;
 
-        _spriteBatch.Begin(samplerState: SamplerState.PointClamp);
+        _graphicsDevice.Clear(new Color(143, 183, 216));
 
-        DrawGround();
-        _rat.Draw(_spriteBatch, new Vector2(_ratEntity.Position.X, _ratEntity.Position.Y), _ratEntity.FacingRight);
+        _spriteBatch.Begin(blendState: BlendState.NonPremultiplied, samplerState: SamplerState.PointClamp);
+
+        DrawFloor(viewport.Width, viewport.Height, groundTop);
+
+        var anchorX = viewport.Width * 0.5f;
+        _rat.Position = new System.Numerics.Vector2(anchorX, groundTop);
+        var anchor = new Vector2(anchorX, groundTop);
+        if (_idle is not null && _idle.HasContent)
+        {
+            var scale = Math.Min(1f, viewport.Height * 0.4f / _idle.PixelHeight);
+            _idle.Draw(_spriteBatch, anchor, scale, _rat.FacingRight);
+        }
+        else
+        {
+            _placeholder.Draw(_spriteBatch, anchor, _rat.FacingRight);
+        }
 
         _spriteBatch.End();
 
         _spriteBatch.Begin();
-        _spriteBatch.DrawString(_debugFont, $"Ratillery - proof of concept\nFPS: {_fps}\nState: {_ratEntity.State}", new Vector2(12, 12), Color.White);
+        var message = $"Ratillery\nFPS: {_fps}\nState: {_rat.State}";
+        if (_assetError is not null)
+            message += $"\n{_assetError} (showing placeholder)";
+        _spriteBatch.DrawString(_debugFont, message, new Vector2(12, 12), Color.White);
         _spriteBatch.End();
     }
 
-    private void DrawGround()
+    private void DrawFloor(int screenWidth, int screenHeight, float groundTop)
     {
-        _spriteBatch.Draw(_rat.Pixel, new Rectangle(0, 424, 960, 96), new Color(96, 74, 58));
+        var topY = (int)groundTop;
+        _spriteBatch.Draw(_pixel, new Rectangle(0, topY, screenWidth, screenHeight - topY), new Color(88, 70, 52));
+        _spriteBatch.Draw(_pixel, new Rectangle(0, topY - 2, screenWidth, 2), new Color(120, 100, 76));
     }
 }

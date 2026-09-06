@@ -12,9 +12,20 @@ public sealed class RatilleryGame : Microsoft.Xna.Framework.Game
 
     public RatilleryGame()
     {
-        _graphics = new GraphicsDeviceManager(this);
+        _graphics = new GraphicsDeviceManager(this)
+        {
+            PreferredBackBufferWidth = 1280,
+            PreferredBackBufferHeight = 720,
+        };
         Content.RootDirectory = "Content";
         IsMouseVisible = true;
+    }
+
+    protected override void Initialize()
+    {
+        Window.Title = "Ratillery";
+        Window.AllowUserResizing = true;
+        base.Initialize();
     }
 
     protected override void LoadContent()
