@@ -13,28 +13,50 @@ You never generate or hand-edit art.
 
 - Spec + delivery rules: `assets-source/README.md`.
 - Layout: `assets-source/<rel>` mirrors `assets/<rel>` one-to-one.
-- Tool: `tools/Ratillery.AssetProcessor` (`validate`, `sheet`, `inspect`).
+- Tool: `tools/Ratillery.AssetProcessor` (`validate`, `sheet`, `inspect`,
+  and `tile` for DEC-007 terrain tiles).
+
+## Terrain tiles (DEC-007) — use `tile`, not `validate`/`sheet`
+
+Files under `assets-source/terrain/layers/*` (`surface-cap.png`, `rock.png`,
+`interior.png`) are terrain layer tiles, not sprites. Run:
+
+```bash
+dotnet run --project tools/Ratillery.AssetProcessor -- tile <input> [--json]
+```
+
+The kind is derived from the file stem (exactly `surface-cap`, `rock`, or
+`interior`; anything else is a usage error). Map the verdict the same way as
+`validate`: `ok` -> PROCESSED (the tool already mirrored the PNG
+byte-identically to `assets/<rel>` plus a tile sidecar JSON — nothing else
+to run), `needs-source-fix` -> NEEDS_SOURCE_FIX (report each `issues[]` item
+verbatim, ask the human to re-deliver per the terrain section of
+`assets-source/README.md`, write nothing yourself). Never run `sheet` on a
+terrain tile and never edit its pixels. PROCESSED still needs the human's
+final visual sign-off.
 
 ## Checklist (per file)
 
 1. Read `assets-source/README.md` once for the delivery spec.
-2. Determine the intended frame count N for the file:
+2. If the file is under `assets-source/terrain/layers/`, follow the
+   "Terrain tiles (DEC-007)" section above instead of this checklist.
+3. Determine the intended frame count N for the file:
    - animated strip -> N from the human's request;
    - single-frame sprite (weapon/object/icon/prop) -> `1`;
    - if unknown, run `validate` without `--frames` and use its auto-detected
      `frameCount`, or ask the human when ambiguous.
-3. Run the deterministic verdict:
+4. Run the deterministic verdict:
 
    ```bash
    dotnet run --project tools/Ratillery.AssetProcessor -- validate <input> [--frames N] --json
    ```
 
-4. Read the JSON verdict. Map it as follows:
+5. Read the JSON verdict. Map it as follows:
    - `verdict == "ok"` -> processable; continue.
    - `verdict == "needs-source-fix"` -> do NOT process. Report each `issues[]`
      item verbatim, tag the file `NEEDS_SOURCE_FIX`, and ask the human to
      re-deliver per `assets-source/README.md`. No art edits, ever.
-5. Process the clean file into the mirrored `assets/` path:
+6. Process the clean file into the mirrored `assets/` path:
 
    ```bash
    dotnet run --project tools/Ratillery.AssetProcessor -- sheet <input> --frames N \
@@ -44,7 +66,7 @@ You never generate or hand-edit art.
    - `<name>`: human-provided name, else the file stem (e.g. `idle`); prefer a
      `category-item` style (`rat-idle`) when clear from the path.
    - single-frame sprites: use `--frames 1` (trims margins, writes metadata).
-6. Sanity-check the outputs it produced (metadata JSON exists; for animated:
+7. Sanity-check the outputs it produced (metadata JSON exists; for animated:
    N frames written, consistent cell size) and, when the source was a strip,
    re-run `validate` on the produced sheet is unnecessary - the pipeline is
    deterministic once the source passed.

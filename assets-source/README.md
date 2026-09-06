@@ -87,3 +87,33 @@ object, icon, prop — so it survives the pipeline without manual fixes.
 
 When a delivery looks risky, run `validate` before processing to confirm the
 splits land in empty gutter; adjust the source, not the output.
+
+## Terrain tiles (DEC-007)
+
+Terrain layer textures are **tiles**, not sprites: the generic source spec
+above does **not** apply to them. They are validated and mirrored as **whole
+textures** — never cropped, frame-split, baseline-aligned, padded, or given
+sprite metadata (`fps`, `loop`, `pivot`). Deliver 3 RGBA PNGs:
+
+| File | Mirrored to | Rules |
+| ---- | ----------- | ----- |
+| `assets-source/terrain/layers/surface-cap.png` | `assets/terrain/layers/surface-cap.png` | RGBA with **transparent headroom** above the **earth-top row** (the first row that is fully opaque across the whole width); grass tufts live free-form in alpha above it. From the earth-top row to the bottom edge the body must be fully opaque (no transparent holes). Horizontally seamless body only (headroom is exempt). A fully opaque or RGB cap is rejected. |
+| `assets-source/terrain/layers/rock.png` | `assets/terrain/layers/rock.png` | Opaque full-bleed (RGB or RGBA with every alpha = 255). Horizontally seamless only; 1:1 vertical mapping (no vertical repeat needed). |
+| `assets-source/terrain/layers/interior.png` | `assets/terrain/layers/interior.png` | Opaque full-bleed. Seamless **both** horizontally and vertically (the engine repeats it downward). A uniform solid tile passes trivially. |
+
+The kind is derived strictly from the file stem (`surface-cap`, `rock`,
+`interior`), so a tile can never be validated under the wrong rules and a
+sprite file run through `tile` is a usage error. Exact dimensions and band
+thicknesses are intentionally not validated (engine config, DEC-007).
+
+Validation + mirror (what the asset-processor agent runs for these files):
+
+```bash
+dotnet run --project tools/Ratillery.AssetProcessor -- tile assets-source/terrain/layers/rock.png --json
+```
+
+`verdict: "ok"` mirrors the PNG byte-for-byte (no re-encode, no pixel
+change) to the mirrored `assets/` path plus a small tile sidecar JSON
+(`name`, `kind`, `width`, `height`, `horizontalSeamless`, and for
+surface-cap `earthTopRow`/`bodyHeight`, for interior `verticalSeamless`).
+`verdict: "needs-source-fix"` writes nothing — re-deliver the source.

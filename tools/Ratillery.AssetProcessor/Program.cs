@@ -22,6 +22,7 @@ public static class Program
                 "inspect" => Inspect(args.Skip(1).ToArray()),
                 "sheet" => Sheet(args.Skip(1).ToArray()),
                 "validate" => Validate(args.Skip(1).ToArray()),
+                "tile" => Tile(args.Skip(1).ToArray()),
                 "help" or "--help" or "-h" => PrintUsage(),
                 _ => Unknown(args[0]),
             };
@@ -207,7 +208,7 @@ public static class Program
         bool jsonOut = a.Has("json");
         string? reportPath = a.OptionNullablePath("report");
 
-        PngHeader header = ReadPngHeader(input);
+        PngHeader header = TileProcessing.ReadPngHeader(input);
 
         using Image<Rgba32> image = Image.Load<Rgba32>(input);
         bool fullyOpaque = IsFullyOpaque(image);
@@ -446,6 +447,73 @@ public static class Program
         return 0;
     }
 
+    private static int Tile(string[] args)
+    {
+        ArgSet a = ArgSet.Parse(args);
+        string input = a.RequiredPositional(0, "tile <input> requires a PNG path");
+        string stem = Path.GetFileNameWithoutExtension(input);
+        TileKind kind = TileProcessing.KindFromStem(stem)
+            ?? throw new ArgumentException(
+                $"cannot determine tile kind from file stem '{stem}': the stem must be exactly one of the DEC-007 terrain layers: {string.Join(", ", TileProcessing.AcceptedStems.Select(s => $"'{s}'"))}");
+        string? outputOverride = a.OptionNullablePath("output");
+        string target = outputOverride ?? TileProcessing.MirrorTarget(input)
+            ?? throw new ArgumentException(
+                "input is not under assets-source/ and no --output was given; deliver the tile under assets-source/terrain/layers/ or pass --output <path>");
+        bool jsonOut = a.Has("json");
+        string? reportPath = a.OptionNullablePath("report");
+
+        TileReport report = TileProcessing.Validate(input, kind, target);
+        if (report.Verdict == "ok")
+        {
+            TileProcessing.WriteOutputs(report, input, report.Output!);
+        }
+
+        string json = TileProcessing.RenderJson(report);
+
+        if (!jsonOut)
+        {
+            Console.WriteLine($"image: {report.Width}x{report.Height}, colorType {report.ColorType}, hasAlpha {report.HasAlpha}");
+            Console.WriteLine($"kind: {report.Kind}");
+            if (report.Kind == "surface-cap")
+            {
+                Console.WriteLine($"earth: top row {(report.EarthTopRow?.ToString() ?? "none")}, body height {report.BodyHeight}");
+            }
+            if (report.HorizontalSeam is not null)
+            {
+                Console.WriteLine($"seam h: edge {report.HorizontalSeam.EdgeMeanDiff} vs interior {report.HorizontalSeam.InteriorMeanDiff} ({(report.HorizontalSeam.Pass ? "pass" : "fail")})");
+            }
+            if (report.VerticalSeam is not null)
+            {
+                Console.WriteLine($"seam v: edge {report.VerticalSeam.EdgeMeanDiff} vs interior {report.VerticalSeam.InteriorMeanDiff} ({(report.VerticalSeam.Pass ? "pass" : "fail")})");
+            }
+            Console.WriteLine($"verdict: {report.Verdict}");
+            foreach (TileIssue p in report.Issues)
+            {
+                Console.WriteLine($"  [{p.Severity}] {p.Message}");
+            }
+            if (report.Output is not null)
+            {
+                Console.WriteLine($"output: {report.Output}");
+            }
+        }
+        else
+        {
+            Console.WriteLine(json);
+        }
+
+        if (reportPath is not null)
+        {
+            string? dir = Path.GetDirectoryName(reportPath);
+            if (!string.IsNullOrEmpty(dir))
+            {
+                Directory.CreateDirectory(dir);
+            }
+            File.WriteAllText(reportPath, json + Environment.NewLine);
+        }
+
+        return 0;
+    }
+
     private static (int Count, int MinGap)? TrySplitMinGap(int[] top, Image<Rgba32> image, int count, int minRunWidth, int threshold)
     {
         try
@@ -494,37 +562,6 @@ public static class Program
         return !translucent;
     }
 
-    private static PngHeader ReadPngHeader(string input)
-    {
-        byte[] head = new byte[33];
-        using FileStream fs = File.OpenRead(input);
-        int read = 0;
-        while (read < head.Length)
-        {
-            int n = fs.Read(head, read, head.Length - read);
-            if (n <= 0)
-            {
-                break;
-            }
-            read += n;
-        }
-
-        if (read < head.Length ||
-            head[0] != 0x89 || head[1] != 0x50 || head[2] != 0x4E || head[3] != 0x47)
-        {
-            throw new ArgumentException("only PNG images are supported (validation reads the alpha/color-type header)");
-        }
-
-        return new PngHeader(
-            Be32(head, 16),
-            Be32(head, 20),
-            head[25],
-            head[25] is 4 or 6);
-    }
-
-    private static int Be32(byte[] bytes, int offset) =>
-        (bytes[offset] << 24) | (bytes[offset + 1] << 16) | (bytes[offset + 2] << 8) | bytes[offset + 3];
-
     private static int Unknown(string command)
     {
         Console.Error.WriteLine($"error: unknown command '{command}'");
@@ -551,6 +588,16 @@ public static class Program
                   Split a horizontal sprite strip into N frames, crop each to its
                   alpha content, bottom-align on a shared baseline, and write a
                   normalized sheet + metadata JSON.
+              tile <input> [--output <path>] [--json] [--report <path>]
+                  Validate a DEC-007 terrain layer tile (kind from the file stem:
+                  surface-cap, rock, or interior) and, when clean, mirror it to
+                  assets/ as a byte-identical whole texture + tile metadata JSON.
+
+            tile options:
+              --output <path>          explicit output path (default: mirrored
+                                       assets/ path for inputs under assets-source/)
+              --json                   print the report as a single JSON object
+              --report <path>          also write the JSON report to a file
 
             sheet options:
               --output <path>          sheet output (also names the .json metadata)
@@ -576,6 +623,7 @@ public static class Program
               dotnet run --project tools/Ratillery.AssetProcessor -- inspect assets-source/rats/base/idle.png --frames 8
               dotnet run --project tools/Ratillery.AssetProcessor -- validate assets-source/rats/base/idle.png --frames 8 --json
               dotnet run --project tools/Ratillery.AssetProcessor -- sheet assets-source/rats/base/idle.png --frames 8 --output assets/sprites/rats/base/idle.png --frames-dir assets/sprites/rats/base/frames --name rat-idle
+              dotnet run --project tools/Ratillery.AssetProcessor -- tile assets-source/terrain/layers/rock.png --json
             """);
         return 0;
     }
@@ -593,8 +641,6 @@ public static class Program
     private sealed record Problem(string Severity, string Message);
 
     private sealed record FrameInfo(int Index, Rc Region, Rc Box, int MarginLeft, int MarginRight);
-
-    private sealed record PngHeader(int Width, int Height, int ColorType, bool HasAlpha);
 
     private sealed class ArgSet
     {

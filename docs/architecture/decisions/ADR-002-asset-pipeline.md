@@ -76,3 +76,28 @@ write to `assets-source/` and the same pipeline converts it.
 - Processed output is deterministic but not artistic QA: the human still
   visually approves frames (e.g. halos, boundaries cutting limbs) before they
   ship.
+
+## Amendment (2026-09-06, TOOL-001): `tile` command for DEC-007 terrain layers
+
+The pipeline gained a fourth command, `tile <input> [--output <path>]
+[--json] [--report <path>]`, for terrain layer textures — whole tiles that
+the sprite rules of `validate`/`sheet` would wrongly reject (opaque
+full-bleed, no transparent margins). The kind is derived strictly from the
+input file stem (`surface-cap`, `rock`, `interior`; anything else is a
+deterministic usage error), so a file can never be validated under the wrong
+rules. Per-kind DEC-007 validation: rock/interior must be fully opaque
+(RGB accepted; RGBA requires every alpha = 255); surface-cap requires a real
+alpha channel with transparent headroom above its earth-top row (first
+fully-opaque full-width row) and a fully opaque body below it; horizontal
+wrap continuity is checked for all kinds (cap body rows only) and vertical
+wrap additionally for `interior`, using a deterministic threshold-based seam
+metric (mean luminance discontinuity at the wrap edge vs. the texture's
+interior adjacent-pixel variation; floor 6.0, ratio limit 3.0, reported in
+the JSON). On `ok`, the PNG is mirrored byte-for-byte (File copy, never
+decode/re-encode) to the mirrored `assets/` path plus a minimal tile sidecar
+JSON (name, kind, width, height, horizontalSeamless; earthTopRow/bodyHeight
+for surface-cap; verticalSeamless for interior — no sprite metadata). On
+`needs-source-fix`, nothing is written. The tile logic is unit-tested with
+synthetic in-code fixtures in the new test project
+`tests/Ratillery.AssetProcessor.Tests` (registered in `Ratillery.slnx`);
+no real art is required to run the pipeline tests.
