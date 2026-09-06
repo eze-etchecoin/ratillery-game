@@ -46,5 +46,34 @@ Ratillery/
 - **Ratillery.Game**: integración con MonoGame (game loop, rendering, input,
   carga de assets, animaciones, escenas).
 
-Estado del desarrollo y roadmap: [`docs/status.md`](docs/status.md) ·
-Visión del producto: [`docs/product/vision.md`](docs/product/vision.md)
+## Arquitectura agéntica
+
+El desarrollo se orquesta con un grafo de agentes definidos en
+`.opencode/agents/` y `.opencode/skills/` (opencode):
+
+```text
+PRODUCT_REQUEST
+    -> functional-analyst   (story + acceptance criteria -> docs/stories/)
+    -> developer            (implementa en feat/<STORY-ID>-<slug>)
+    -> qa                   (validación adversarial: PASS / FAIL / BLOCKED)
+
+QA PASS + DEV_APPROVED + ANALYST_APPROVED
+    -> merge --no-ff a main -> DONE
+```
+
+Principios del diseño:
+
+- **Orquestación por grafo, no por chat**: un agente `orchestrator` enruta el
+  trabajo entre subagentes especializados (máx. 3 ciclos dev↔QA, luego escala
+  al humano).
+- **Coordinación por artefactos**: los agentes no conversan entre sí; se
+  comunican mediante archivos versionados (stories, QA reports, ADRs).
+- **Separación de responsabilidades**: el analista no programa, QA no edita
+  código, el developer no decide reglas de gameplay.
+- **Escalamiento explícito**: las decisiones se clasifican en niveles (L1
+  interno, L2 arquitectura con ADR, L3 producto — siempre humanas).
+- **`main` protegido**: solo entra trabajo validado por los tres approvals.
+
+Detalles en [`docs/agents/graph.md`](docs/agents/graph.md) y
+[`AGENTS.md`](AGENTS.md). Estado del desarrollo: [`docs/status.md`](docs/status.md)
+· Visión del producto: [`docs/product/vision.md`](docs/product/vision.md)
