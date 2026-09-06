@@ -3,7 +3,7 @@
 Single source of truth for development status. Maintained by the
 orchestrator; every agent artifact must be registered here.
 
-Last updated: 2026-09-06 (RAT-001 merged to main, slice 1 done)
+Last updated: 2026-09-06 (RAT-002 implemented; slice 2 in QA)
 
 ## Milestone
 
@@ -14,7 +14,7 @@ Progress: 1 / 8 slices
 | # | Slice | Story | Status |
 | - | ----- | ----- | ------ |
 | 1 | Animated rat (Idle) | RAT-001 | done |
-| 2 | 2D terrain + collision mask | — | pending |
+| 2 | 2D terrain + collision mask | RAT-002 | in-progress |
 | 3 | Aiming | — | pending |
 | 4 | Firing + projectile | — | pending |
 | 5 | Ballistic trajectory | — | pending |
@@ -27,6 +27,7 @@ Progress: 1 / 8 slices
 | ID | Title | Status | QA | File |
 | -- | ----- | ------ | -- | ---- |
 | RAT-001 | Animated rat (Idle) | done | PASS | `docs/stories/RAT-001-animated-rat-idle.md` |
+| RAT-002 | 2D terrain + collision mask | in-progress | PASS | `docs/stories/RAT-002-2d-terrain-collision-mask.md` |
 
 Status: `draft` -> `ready` -> `in-progress` (feature branch
 `feat/<ID>-<slug>`) -> `done` (merged to `main` after DEV_APPROVED + QA PASS +
@@ -76,3 +77,7 @@ Chronological summary per dev cycle. One line per story/bug resolution.
 | 2026-09-06 | RAT-001 | Developer implemented on `feat/RAT-001-animated-rat-idle`: data-driven looping idle animation (all params from `idle.json`), flat floor staging, frame-0 fallback, time-based playback; ADR-003 records the sprite content delivery decision. `dotnet build` + `dotnet test` green; awaiting QA. |
 | 2026-09-06 | RAT-001 | QA PASS (10/10 AC, build/test green, runtime smoke ok, no scope creep). ANALYST_APPROVED (scope conformance ok). Merge gate 3/3 complete; pending human visual sign-off per AC-1/DEC-006 before merge to main. |
 | 2026-09-06 | RAT-001 | Human visual sign-off granted. Merged to main (--no-ff), story `done`, slice 1/8 complete, feature branch deleted. |
+| 2026-09-06 | RAT-002 | Slice 2 requested by human ("continuar con la generación del terreno"). Functional-analyst drafted story `RAT-002-2d-terrain-collision-mask.md` (status `draft`): rendered terrain (DEC-003 layers) + static Core collision mask, rat on real surface, placeholder per DEC-002. 5 open questions (OQ-1..5) raised for human (procedural vs fixed shape; art model + exact assets; fate of RAT-001 flat floor; playfield definition; rat spawn column). Art delivery pending OQ-2 resolution. |
+| 2026-09-06 | RAT-002 | Human resolved OQ-1..5: procedural deterministic terrain (A2 moderate hills + flat spans, rat feet near ~78% line); art model Option A (one tileable texture per depth band, overhang allowed), art DELAYED to post-slice follow-up — placeholder is shipped presentation; flat floor fully removed; fixed 1280x720 playfield (letterboxed, resize-independent); rat spawns at horizontal center, pivot = mask surface height. Analyst finalized story to `status: ready` (Resolutions R-1..R-5 recorded). Ready for developer. |
+| 2026-09-06 | RAT-002 | Developer implemented on `feat/RAT-002-2d-terrain-collision-mask` (commit 7218bd8): `TerrainConfig` + `TerrainMask` in Core (deterministic procedural profile, solid/empty + per-column surface height, config validation), `PlaceholderTerrain` + MainScene rework in Game (fixed 1280x720 playfield letterboxed, flat floor removed, rat pivot on mask surface at center column, placeholder marker). `dotnet build` 0 warnings/errors, `dotnet test` 27/27 green (19 new terrain-mask tests). DEV_APPROVED; story in-progress awaiting QA. |
+| 2026-09-06 | RAT-002 | QA PASS (1/1): all 10 ACs hold; build/test green; runtime pixel-probe evidence (terrain to bottom, 3 ordered bands darker with depth over hills/dips, non-flat continuous profile anchored at 78% row 562, cross-launch determinism, rat feet on surface no gap/sink, letterboxed resize OK, placeholder marker). No scope creep. Non-blocking notes recorded for later slices. Awaiting ANALYST_APPROVED + human merge consent. |

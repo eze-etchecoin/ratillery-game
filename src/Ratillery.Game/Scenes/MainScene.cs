@@ -2,26 +2,36 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Ratillery.Core.Entities;
+using Ratillery.Core.Terrain;
 using Ratillery.Game.Animation;
 using Ratillery.Game.Rendering;
 
 namespace Ratillery.Game.Scenes;
 
 /// <summary>
-/// Playable-canvas scene: simple background, a flat non-interactive floor
-/// band and a single animated rat standing on it. Layout follows the current
-/// viewport so the rat stays on screen when the window is resized.
+/// Playable-canvas scene (R-4): a fixed 1280 x 720 world-unit playfield holds
+/// the procedural terrain — drawn exactly where the Core collision mask is
+/// solid, from its surface down to the playfield bottom — and a single
+/// animated rat standing on the terrain surface at the playfield's horizontal
+/// center. The whole playfield is uniformly scaled and centered to fit the
+/// window (letterboxed if the aspect differs); resizing never changes the
+/// world, terrain or mask. The RAT-001 flat staging floor is gone (R-3).
 /// </summary>
 public sealed class MainScene
 {
     private const string IdleSpriteDir = "sprites/rats/base";
     private const string IdleSpriteStem = "idle";
 
+    /// <summary>Rat height as a fraction of the playfield height (RAT-001 look).</summary>
+    private const float RatSizeWorldFraction = 0.4f;
+
     private readonly GraphicsDevice _graphicsDevice;
     private readonly SpriteBatch _spriteBatch;
     private readonly SpriteFont _debugFont;
-    private readonly Texture2D _pixel;
     private readonly PlaceholderRat _placeholder;
+    private readonly PlaceholderTerrain _terrain;
+    private readonly TerrainConfig _terrainConfig = new();
+    private readonly TerrainMask _terrainMask;
     private readonly Rat _rat = new() { State = RatState.Idle };
 
     private SpriteAnimation? _idle;
@@ -35,9 +45,9 @@ public sealed class MainScene
         _graphicsDevice = graphicsDevice;
         _spriteBatch = new SpriteBatch(graphicsDevice);
         _debugFont = content.Load<SpriteFont>("Debug");
-        _pixel = new Texture2D(graphicsDevice, 1, 1);
-        _pixel.SetData(new[] { Color.White });
         _placeholder = new PlaceholderRat(graphicsDevice);
+        _terrain = new PlaceholderTerrain(graphicsDevice);
+        _terrainMask = new TerrainMask(_terrainConfig);
 
         try
         {
@@ -71,41 +81,70 @@ public sealed class MainScene
     public void Draw(GameTime gameTime)
     {
         var viewport = _graphicsDevice.Viewport;
-        float groundTop = viewport.Height * 0.78f;
-
         _graphicsDevice.Clear(new Color(143, 183, 216));
 
-        _spriteBatch.Begin(blendState: BlendState.NonPremultiplied, samplerState: SamplerState.PointClamp);
+        var view = ComputePlayfieldView(viewport.Width, viewport.Height);
 
-        DrawFloor(viewport.Width, viewport.Height, groundTop);
+        // World space: the mask is the only source of terrain geometry.
+        _spriteBatch.Begin(blendState: BlendState.NonPremultiplied, samplerState: SamplerState.PointClamp, transformMatrix: view.Matrix);
 
-        var anchorX = viewport.Width * 0.5f;
-        _rat.Position = new System.Numerics.Vector2(anchorX, groundTop);
-        var anchor = new Vector2(anchorX, groundTop);
+        _terrain.Draw(_spriteBatch, _terrainMask, _terrainConfig);
+
+        // Bottom-center pivot rests exactly on the mask surface at the
+        // horizontal center of the playfield (R-5, AC-8).
+        var ratColumn = _terrainMask.Width / 2;
+        var ratAnchor = new Vector2(_terrainMask.Width * 0.5f, _terrainMask.SurfaceHeight(ratColumn));
+        _rat.Position = new System.Numerics.Vector2(ratAnchor.X, ratAnchor.Y);
         if (_idle is not null && _idle.HasContent)
         {
-            var scale = Math.Min(1f, viewport.Height * 0.4f / _idle.PixelHeight);
-            _idle.Draw(_spriteBatch, anchor, scale, _rat.FacingRight);
+            var scale = Math.Min(1f, _terrainConfig.Height * RatSizeWorldFraction / _idle.PixelHeight);
+            _idle.Draw(_spriteBatch, ratAnchor, scale, _rat.FacingRight);
         }
         else
         {
-            _placeholder.Draw(_spriteBatch, anchor, _rat.FacingRight);
+            _placeholder.Draw(_spriteBatch, ratAnchor, _rat.FacingRight);
         }
 
         _spriteBatch.End();
 
+        DrawHud(view);
+    }
+
+    /// <summary>
+    /// Maps the fixed world playfield onto the window: uniform scale to fit,
+    /// centered, letterboxed when the aspect differs (R-4).
+    /// </summary>
+    private PlayfieldView ComputePlayfieldView(int viewportWidth, int viewportHeight)
+    {
+        var scale = Math.Min(viewportWidth / (float)_terrainConfig.Width, viewportHeight / (float)_terrainConfig.Height);
+        var offsetX = (viewportWidth - _terrainConfig.Width * scale) * 0.5f;
+        var offsetY = (viewportHeight - _terrainConfig.Height * scale) * 0.5f;
+        return new PlayfieldView(scale, offsetX, offsetY);
+    }
+
+    private void DrawHud(PlayfieldView view)
+    {
         _spriteBatch.Begin();
+
         var message = $"Ratillery\nFPS: {_fps}\nState: {_rat.State}";
         if (_assetError is not null)
             message += $"\n{_assetError} (showing placeholder)";
         _spriteBatch.DrawString(_debugFont, message, new Vector2(12, 12), Color.White);
+
+        // DEC-002 marker: clearly identifies this placeholder presentation.
+        var marker = "TERRAIN PLACEHOLDER";
+        var markerSize = _debugFont.MeasureString(marker);
+        var bottomCenter = view.WorldToScreen(new Vector2(_terrainConfig.Width * 0.5f, _terrainConfig.Height));
+        var markerPosition = new Vector2(bottomCenter.X - markerSize.X * 0.5f, bottomCenter.Y - markerSize.Y - 8f);
+        _spriteBatch.DrawString(_debugFont, marker, markerPosition, Color.White);
+
         _spriteBatch.End();
     }
 
-    private void DrawFloor(int screenWidth, int screenHeight, float groundTop)
+    private readonly record struct PlayfieldView(float Scale, float OffsetX, float OffsetY)
     {
-        var topY = (int)groundTop;
-        _spriteBatch.Draw(_pixel, new Rectangle(0, topY, screenWidth, screenHeight - topY), new Color(88, 70, 52));
-        _spriteBatch.Draw(_pixel, new Rectangle(0, topY - 2, screenWidth, 2), new Color(120, 100, 76));
+        public Matrix Matrix => Matrix.CreateScale(Scale) * Matrix.CreateTranslation(OffsetX, OffsetY, 0f);
+
+        public Vector2 WorldToScreen(Vector2 world) => new(world.X * Scale + OffsetX, world.Y * Scale + OffsetY);
     }
 }
