@@ -1,0 +1,7 @@
+{
+  "name": "rock",
+  "kind": "rock",
+  "width": 512,
+  "height": 64,
+  "horizontalSeamless": true
+}

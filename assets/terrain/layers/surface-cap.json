@@ -1,0 +1,9 @@
+{
+  "name": "surface-cap",
+  "kind": "surface-cap",
+  "width": 512,
+  "height": 32,
+  "horizontalSeamless": true,
+  "earthTopRow": 11,
+  "bodyHeight": 21
+}

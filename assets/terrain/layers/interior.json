@@ -1,0 +1,8 @@
+{
+  "name": "interior",
+  "kind": "interior",
+  "width": 64,
+  "height": 64,
+  "horizontalSeamless": true,
+  "verticalSeamless": true
+}
