@@ -29,13 +29,12 @@ public sealed class PlaceholderTerrain
     {
         for (var column = 0; column < mask.Width; column++)
         {
-            var surfaceTop = mask.SurfaceHeight(column);
-            var rockTop = Math.Min(mask.Height, surfaceTop + config.SurfaceBandPixels);
-            var interiorTop = Math.Min(mask.Height, surfaceTop + config.SurfaceBandPixels + config.RockBandPixels);
+            var bands = TerrainBands.Compute(
+                mask.SurfaceHeight(column), config.SurfaceBandPixels, config.RockBandPixels, mask.Height);
 
-            Fill(spriteBatch, column, surfaceTop, rockTop, SurfaceColor);
-            Fill(spriteBatch, column, rockTop, interiorTop, RockColor);
-            Fill(spriteBatch, column, interiorTop, mask.Height, InteriorColor);
+            Fill(spriteBatch, column, bands.CapTop, bands.RockTop, SurfaceColor);
+            Fill(spriteBatch, column, bands.RockTop, bands.InteriorTop, RockColor);
+            Fill(spriteBatch, column, bands.InteriorTop, bands.Bottom, InteriorColor);
         }
     }
 

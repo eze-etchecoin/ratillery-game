@@ -29,7 +29,8 @@ public sealed class MainScene
     private readonly SpriteBatch _spriteBatch;
     private readonly SpriteFont _debugFont;
     private readonly PlaceholderRat _placeholder;
-    private readonly PlaceholderTerrain _terrain;
+    private readonly PlaceholderTerrain _placeholderTerrain;
+    private readonly RealTerrain? _realTerrain;
     private readonly TerrainConfig _terrainConfig = new();
     private readonly TerrainMask _terrainMask;
     private readonly Rat _rat = new() { State = RatState.Idle };
@@ -46,12 +47,14 @@ public sealed class MainScene
         _spriteBatch = new SpriteBatch(graphicsDevice);
         _debugFont = content.Load<SpriteFont>("Debug");
         _placeholder = new PlaceholderRat(graphicsDevice);
-        _terrain = new PlaceholderTerrain(graphicsDevice);
+        _placeholderTerrain = new PlaceholderTerrain(graphicsDevice);
         _terrainMask = new TerrainMask(_terrainConfig);
+
+        var contentRoot = Path.Combine(AppContext.BaseDirectory, content.RootDirectory);
+        _realTerrain = RealTerrain.TryLoad(graphicsDevice, Path.Combine(contentRoot, "terrain", "layers"));
 
         try
         {
-            var contentRoot = Path.Combine(AppContext.BaseDirectory, content.RootDirectory);
             _idle = SpriteAnimation.Load(graphicsDevice, contentRoot, IdleSpriteDir, IdleSpriteStem);
             if (!_idle.HasContent)
                 _assetError = "Idle sprite unavailable (frame 0 failed to load)";
@@ -88,7 +91,10 @@ public sealed class MainScene
         // World space: the mask is the only source of terrain geometry.
         _spriteBatch.Begin(blendState: BlendState.NonPremultiplied, samplerState: SamplerState.PointClamp, transformMatrix: view.Matrix);
 
-        _terrain.Draw(_spriteBatch, _terrainMask, _terrainConfig);
+        if (_realTerrain is not null)
+            _realTerrain.Draw(_spriteBatch, _terrainMask);
+        else
+            _placeholderTerrain.Draw(_spriteBatch, _terrainMask, _terrainConfig);
 
         // Bottom-center pivot rests exactly on the mask surface at the
         // horizontal center of the playfield (R-5, AC-8).
@@ -131,12 +137,16 @@ public sealed class MainScene
             message += $"\n{_assetError} (showing placeholder)";
         _spriteBatch.DrawString(_debugFont, message, new Vector2(12, 12), Color.White);
 
-        // DEC-002 marker: clearly identifies this placeholder presentation.
-        var marker = "TERRAIN PLACEHOLDER";
-        var markerSize = _debugFont.MeasureString(marker);
-        var bottomCenter = view.WorldToScreen(new Vector2(_terrainConfig.Width * 0.5f, _terrainConfig.Height));
-        var markerPosition = new Vector2(bottomCenter.X - markerSize.X * 0.5f, bottomCenter.Y - markerSize.Y - 8f);
-        _spriteBatch.DrawString(_debugFont, marker, markerPosition, Color.White);
+        // DEC-002 marker identifies the placeholder presentation only; it is
+        // suppressed when the signed-off real terrain art renders (AC-1).
+        if (_realTerrain is null)
+        {
+            const string marker = "TERRAIN PLACEHOLDER";
+            var markerSize = _debugFont.MeasureString(marker);
+            var bottomCenter = view.WorldToScreen(new Vector2(_terrainConfig.Width * 0.5f, _terrainConfig.Height));
+            var markerPosition = new Vector2(bottomCenter.X - markerSize.X * 0.5f, bottomCenter.Y - markerSize.Y - 8f);
+            _spriteBatch.DrawString(_debugFont, marker, markerPosition, Color.White);
+        }
 
         _spriteBatch.End();
     }
