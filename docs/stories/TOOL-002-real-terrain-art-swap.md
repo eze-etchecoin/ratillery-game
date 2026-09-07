@@ -1,6 +1,6 @@
 # TOOL-002: Swap the DEC-002 placeholder terrain fill for the delivered real art
 
-status: in-progress
+status: done
 
 ## Story
 

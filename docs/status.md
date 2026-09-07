@@ -3,7 +3,7 @@
 Single source of truth for development status. Maintained by the
 orchestrator; every agent artifact must be registered here.
 
-Last updated: 2026-09-06 (TOOL-001 merged to main; terrain art delivery pending processing)
+Last updated: 2026-09-06 (TOOL-002 merged; real terrain art renders in-game)
 
 ## Milestone
 
@@ -29,7 +29,7 @@ Progress: 2 / 8 slices
 | RAT-001 | Animated rat (Idle) | done | PASS | `docs/stories/RAT-001-animated-rat-idle.md` |
 | RAT-002 | 2D terrain + collision mask | done | PASS | `docs/stories/RAT-002-2d-terrain-collision-mask.md` |
 | TOOL-001 | Asset-processor tile mode (terrain layer validation + mirror) | done | PASS | `docs/stories/TOOL-001-asset-processor-tile-mode.md` |
-| TOOL-002 | Real terrain art swap (placeholder fill → delivered art) | in-progress | PASS | `docs/stories/TOOL-002-real-terrain-art-swap.md` |
+| TOOL-002 | Real terrain art swap (placeholder fill → delivered art) | done | PASS | `docs/stories/TOOL-002-real-terrain-art-swap.md` |
 
 Status: `draft` -> `ready` -> `in-progress` (feature branch
 `feat/<ID>-<slug>`) -> `done` (merged to `main` after DEV_APPROVED + QA PASS +
@@ -72,7 +72,7 @@ Handoff notes for the next working session.
 
 | Item | Origin | Action needed | Reference |
 | ---- | ------ | ------------- | --------- |
-| Terrain real art (3 zones, DEC-007) | RAT-002, R-2(d) — PROCESSED + visual sign-off; swap story next | Delivered, validated and mirrored: `assets/terrain/layers/{surface-cap,rock,interior}.png` + sidecars (TOOL-001); human visual sign-off granted (DEC-006). Next: dev story swaps the placeholder fill for the real art (loading, earth-top alignment to H(x), interior tiling, band-thickness match with `TerrainConfig`), then human visual QA in-game. | DEC-007 below / TOOL-001 |
+| Terrain real art (3 zones, DEC-007) | RAT-002 follow-up — COMPLETE (TOOL-001 + TOOL-002) | Art delivered, validated (TOOL-001 `tile`), mirrored to `assets/terrain/layers/`, and rendering in-game with placeholder fallback (TOOL-002). Remaining: human in-game visual sign-off (DEC-006). | DEC-007 / TOOL-001 / TOOL-002 |
 | Terrain feel tune (optional) | RAT-002 shipped default (seed 20260906) | If the human wants more/less relief, adjust `TerrainConfig` defaults (L1). | `src/Ratillery.Core/Terrain/TerrainConfig.cs` |
 | Slice 3: Aiming | Milestone backlog | Needs a PRODUCT_REQUEST + product decisions from the human (input scheme, reticle/aim UI, angle/power UX) before the functional-analyst drafts the story. | `docs/status.md` milestone table |
 
@@ -108,3 +108,4 @@ Chronological summary per dev cycle. One line per story/bug resolution.
 | 2026-09-06 | TOOL-002 | Developer implemented on `feat/TOOL-002-real-terrain-art-swap` (uncommitted): `RealTerrain`/`TerrainTileSidecar`/`TerrainBands`, MainScene real-vs-placeholder selection + marker suppression, `SurfaceBandPixels` 24→21, 13 new Core tests (Core 40 + tool 34 = 74 green), ADR-004. Build 0w/0e. DEV_APPROVED; awaiting QA. |
 | 2026-09-06 | TOOL-002 | QA PASS (cycle 1/3): all TOOL-002 ACs hold; build 0w/0e; tests 74/74 (Core 40 + tool 34, pre-existing all green). Cap earth-top (sidecar 11) aligned to H(x) with bodyHeight 21; rock 1:1 64px below cap clipped at bottom; interior world-anchored vertical tiling (world row % height, phase aligned); whole-presentation fallback on missing/corrupt tile (no crash, no partial mix); marker only when real art absent; mask-agreement invariant (RAT-002 AC-6) and rat placement preserved; no stale 24 constant. Runtime smoke: game ran 12s clean. Scope clean (`TerrainMask`/rat/ballistics untouched; RAT stories untouched; assets unchanged). Non-blocking: possible texture leak on the invalid-cap early-return path in `TryLoad`; cap strip not bottom-clamped for hypothetical H>699 (unreachable in shipped config); final in-game human visual sign-off still pending. Awaiting ANALYST_APPROVED + human merge consent. |
 | 2026-09-06 | TOOL-002 | ANALYST_APPROVED (scope conformance): all 10 changed files map to a story item; ACs not rewritten; behavior matches DEC-007 + preserves RAT-002 invariants (mask agreement, surface profile, rat placement, determinism); out-of-scope respected (TerrainMask/rat/ballistics/aiming/input/slices 3-8 untouched; no asset/art changes; RAT/TOOL-001 stories untouched); ADR-004 consistent. Merge gate 3/3 (DEV_APPROVED + QA PASS + ANALYST_APPROVED); pending human merge consent. |
+| 2026-09-06 | TOOL-002 | Human granted merge consent + push. Merged to main (--no-ff), story `done`, feature branch deleted. Real terrain art now renders in-game (fallback path retained). Open items: (1) final in-game human visual sign-off of the real art (DEC-006); (2) optional later cleanup of the two non-blocking QA notes (TryLoad texture leak; cap bottom-clamp for H>699). |
