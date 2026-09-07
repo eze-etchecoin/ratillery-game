@@ -54,8 +54,12 @@ public sealed class TerrainConfig
 
     // --- Depth bands (fill appearance only) ---
 
-    /// <summary>Vertical thickness of the surface grass/earth band below the local surface, in pixels.</summary>
-    public int SurfaceBandPixels { get; set; } = 24;
+    /// <summary>
+    /// Vertical thickness of the surface grass/earth band below the local
+    /// surface, in pixels. Matched 1:1 to the delivered surface-cap art body
+    /// height (sidecar <c>bodyHeight</c> = 21, DEC-007 / TOOL-002 AC-7).
+    /// </summary>
+    public int SurfaceBandPixels { get; set; } = 21;
 
     /// <summary>Vertical thickness of the rock band below the surface band, in pixels.</summary>
     public int RockBandPixels { get; set; } = 64;
